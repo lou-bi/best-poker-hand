@@ -9,25 +9,52 @@ import (
 )
 
 const CardSuits = "[♡♤♢♧]"
-const CardValues = "[2-9JQKA]"
-const OrderedValues = "AKQJ98765432"
+const CardValues = `(?:[2-9]|10|[JQKA])`
+
+func getCardIntValue(target string) int {
+	orderedValues := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
+	for i, e := range orderedValues {
+		if target == e {
+			return i + 2
+		}
+	}
+	return -1
+}
 
 /**
  * Main program.
  */
-func BestHand(hands []string) (string, error) {
+func BestHand(hands []string) ([]string, error) {
 	if err := checkHandsFormat(&hands); err != nil {
-		return "", err
+		return []string{""}, err
 	}
 
-	parsedHands := parseHands(&hands)
+	parsedHands := parseHands(hands)
 
-	for _, parsedHand := range parsedHands {
-		isFourOfAKind(&parsedHand)
+	higherRank := parsedHands[0].rank
+	winners := []string{parsedHands[0].input}
+
+	for _, h := range parsedHands[1:] {
+		if h.rank == higherRank {
+
+			for i := 0; i < 5; i++ {
+				v := h.cards[i].value
+				x := parsedHands[0].cards[i].value
+				if v > x {
+					return []string{h.input}, nil
+				}
+				if v < x {
+					return winners, nil
+				}
+
+			}
+
+			winners = append(winners, h.input)
+
+		}
 	}
 
-	fmt.Printf("%v", parsedHands)
-	return "", nil
+	return winners, nil
 }
 
 /**
@@ -51,101 +78,76 @@ func checkHandsFormat(hands *[]string) error {
  * Parse hands in a more practical format to work with.
  * Also sort hands by value from higher to lower
  */
-func parseHands(hands *[]string) []Hand {
+func parseHands(hands []string) []Hand {
 	var parsedHands []Hand
 
-	for _, hand := range *hands {
+	for _, hand := range hands {
+		var cards []Card
 		handSplit := strings.Split(hand, " ")
 
-		sort.Slice(handSplit, func(a, b int) bool {
-			aValue := []rune(handSplit[a])[0]
-			bValue := []rune(handSplit[b])[0]
-			return strings.IndexRune(OrderedValues, aValue) < strings.IndexRune(OrderedValues, bValue)
-		})
+		for _, h := range handSplit {
+			// suit index
+			// I did keep the icon so len() is longer
+			si := len(h) - 3
 
-		parsedHands = append(parsedHands, Hand{
-			hand:          hand,
-			formattedHand: handSplit,
+			value := h[0:si]
+			suit := h[si:]
+			intValue := getCardIntValue(value)
+
+			cards = append(cards, Card{intValue, suit})
+		}
+
+		sort.Slice(cards, func(a, b int) bool {
+			return cards[a].value > cards[b].value
 		})
+		cardsPtr := &cards
+		parsedHands = append(parsedHands, Hand{hand, *cardsPtr, getRank(cardsPtr)})
 	}
+
+	sort.Slice(parsedHands, func(a, b int) bool {
+		if parsedHands[a].rank == parsedHands[b].rank {
+			return parsedHands[a].cards[0].value > parsedHands[b].cards[0].value
+		}
+		return parsedHands[a].rank > parsedHands[b].rank
+	})
 
 	return parsedHands
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-// At this point, it is obvious that working plain string will make code unreadable.
-// We should introduce some kind of structure to store a "rank" with a hand.
-// We will probably follow the ranking system from the wikipedia page,
-// i.e an int from 1 to 10, 1 being "high card" and 10 being "five of a kind".
-//
-// As "joker" is not a card from the test file, we will omit the 10th rank,
-// going 1 to 9.
-// ///////////////////////////////////////////////////////////////////////////
-type Hand struct {
-	hand          string
-	formattedHand []string // this might be deleted when I figure out how
-	rank          uint8
-}
+func getRank(cards *[]Card) float64 {
+	kindsOccurence := make(KindsOccurence)
 
-// ///////////////////////////////////////////////////////////////////////////
-// We then write functions to detect all possible figures.
-//
-// We will use regex to detect figures based on repetitions,
-// i.e flush and any pairs.
-// (Yes, I love regexp, if it wasn't clear)
-//
-// They are all structured the same:
-// - First we detect what we search for in a capturing group (suit OR value)
-// - We then search for the captured char anywhere else, n - 1 times.
-// (n-1 because we already matched it once in the captured group)
-// ///////////////////////////////////////////////////////////////////////////
+	for _, c := range *cards {
+		if _, ok := kindsOccurence[c.value]; ok {
+			kindsOccurence[c.value]++
+		} else {
+			kindsOccurence[c.value] = 1
+		}
+	}
 
-func isStraightFlush(h *Hand) bool {
-	return isStraight(h) && isFlush(h)
-}
-
-func isFourOfAKind(h *Hand) bool {
-	rs := fmt.Sprintf(`(%v)(?:.+\1){3}`, CardValues)
-	r := regexp.MustCompile(rs)
-	return r.MatchString(h.hand)
-}
-
-func isFullHouse(h *Hand) bool {
-	return isThreeOfAKind(h) && isOnePair(h)
-}
-
-func isFlush(h *Hand) bool {
-	rs := fmt.Sprintf(`(%v)(?:.+\1){4}`, CardSuits)
-	r := regexp.MustCompile(rs)
-	return r.MatchString(h.hand)
-}
-
-func isStraight(h *Hand) bool {
-	return false
-}
-
-func isThreeOfAKind(h *Hand) bool {
-	rs := fmt.Sprintf(`(%v)(?:.+\1){2}`, CardValues)
-	r := regexp.MustCompile(rs)
-	return r.MatchString(h.hand)
-}
-
-/**
- * This regex will match two pairs even if they are the same.
- * But because we will search for "isFourOfAKind" before,
- * we will never go there with 2 same pairs.
- */
-func isTwoPair(h *Hand) bool {
-	rs := fmt.Sprintf(`(?:.*?(%v).*?\1){2}`, CardValues)
-	r := regexp.MustCompile(rs)
-	return r.MatchString(h.hand)
-}
-
-/**
- * Same comment as above
- */
-func isOnePair(h *Hand) bool {
-	rs := fmt.Sprintf(`(%v).+\1`, CardValues)
-	r := regexp.MustCompile(rs)
-	return r.MatchString(h.hand)
+	if IsStraightFlush(cards) {
+		return 8
+	}
+	if IsFourOfAKind(kindsOccurence) {
+		return 7
+	}
+	if res, d := IsFullHouse(cards); res {
+		return 6 + d
+	}
+	if IsFlush(cards) {
+		return 5
+	}
+	if IsStraight(cards) {
+		return 4
+	}
+	if IsThreeOfAKind(kindsOccurence) {
+		return 3
+	}
+	if IsTwoPair(kindsOccurence) {
+		return 2
+	}
+	if IsOnePair(kindsOccurence) {
+		return 1
+	}
+	return 0
 }
