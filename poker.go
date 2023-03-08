@@ -131,28 +131,28 @@ func getRank(cards []Card) float64 {
 	kindsOccurence := getKindsOccurence(cards)
 	var rankIntegerPart float64
 
-	rankIntegerPart = IsStraightFlush(cards, &kindsOccurence)
+	rankIntegerPart = isStraightFlush(cards, &kindsOccurence)
 
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsFourOfAKind(kindsOccurence)
+		rankIntegerPart = isFourOfAKind(kindsOccurence)
 	}
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsFullHouse(kindsOccurence)
+		rankIntegerPart = isFullHouse(kindsOccurence)
 	}
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsFlush(cards)
+		rankIntegerPart = isFlush(cards)
 	}
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsStraight(&kindsOccurence)
+		rankIntegerPart = isStraight(&kindsOccurence)
 	}
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsThreeOfAKind(kindsOccurence)
+		rankIntegerPart = isThreeOfAKind(kindsOccurence)
 	}
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsTwoPair(kindsOccurence)
+		rankIntegerPart = isTwoPair(kindsOccurence)
 	}
 	if rankIntegerPart == Rank_zero {
-		rankIntegerPart = IsOnePair(kindsOccurence)
+		rankIntegerPart = isOnePair(kindsOccurence)
 	}
 
 	rankDecimalPart := getRankDecimalPart(kindsOccurence)

@@ -1,14 +1,20 @@
 package poker
 
-func IsStraightFlush(cards []Card, kinds *[]KindOccurence) float64 {
+/*
+	This file make sense only with the comprehension of
+	structures []Card and []KindOccurence.
+	The fact that they are all sorted make algorythm much more concise.
+*/
+
+func isStraightFlush(cards []Card, kinds *[]KindOccurence) float64 {
 	// Check for IsStraight AFTER as it will mutate "kinds" in case of a "low ace straight"
-	if IsFlush(cards) > 0 && IsStraight(kinds) > 0 {
+	if isFlush(cards) > 0 && isStraight(kinds) > 0 {
 		return Rank_sf
 	}
 	return Rank_zero
 }
 
-func IsFourOfAKind(kinds []KindOccurence) float64 {
+func isFourOfAKind(kinds []KindOccurence) float64 {
 	for _, kind := range kinds {
 		if kind.count == 4 {
 			return Rank_foak
@@ -18,14 +24,14 @@ func IsFourOfAKind(kinds []KindOccurence) float64 {
 	return Rank_zero
 }
 
-func IsFullHouse(kinds []KindOccurence) float64 {
-	if IsThreeOfAKind(kinds) != 0 && IsOnePair(kinds) != 0 {
+func isFullHouse(kinds []KindOccurence) float64 {
+	if isThreeOfAKind(kinds) != 0 && isOnePair(kinds) != 0 {
 		return Rank_fh
 	}
 	return Rank_zero
 }
 
-func IsFlush(cards []Card) float64 {
+func isFlush(cards []Card) float64 {
 	for i := 1; i < len((cards))-1; i++ {
 		if cards[i].suit != cards[0].suit {
 			return Rank_zero
@@ -34,7 +40,12 @@ func IsFlush(cards []Card) float64 {
 	return Rank_f
 }
 
-func IsStraight(kindsOccurence *[]KindOccurence) float64 {
+//
+// This one is a bit huge mostly because we need to check for "low start ace straight" figure,
+// with the need of mutating ace's value.
+// This way, we can geet the proper decimal rank for this figure.
+//
+func isStraight(kindsOccurence *[]KindOccurence) float64 {
 	if len(*kindsOccurence) != 5 {
 		return Rank_zero
 	}
@@ -54,6 +65,10 @@ func IsStraight(kindsOccurence *[]KindOccurence) float64 {
 	if hasAce && !straight {
 		straight = false
 
+		// We move the low ace to the end of the slice,
+		// by slicing its first element
+		// and appending a {value: 1 count: 1} to KindsOccurence
+		// We will save it if we have a straight
 		newKindsOccurence := (*kindsOccurence)[1:]
 		newKindsOccurence = append(newKindsOccurence, KindOccurence{1, 1})
 
@@ -81,7 +96,7 @@ func IsStraight(kindsOccurence *[]KindOccurence) float64 {
 	return Rank_zero
 }
 
-func IsThreeOfAKind(kinds []KindOccurence) float64 {
+func isThreeOfAKind(kinds []KindOccurence) float64 {
 	for _, kind := range kinds {
 		if kind.count == 3 {
 			return Rank_toak
@@ -90,7 +105,7 @@ func IsThreeOfAKind(kinds []KindOccurence) float64 {
 	return Rank_zero
 }
 
-func IsTwoPair(kinds []KindOccurence) float64 {
+func isTwoPair(kinds []KindOccurence) float64 {
 	var nbPair int
 
 	for _, kind := range kinds {
@@ -105,7 +120,7 @@ func IsTwoPair(kinds []KindOccurence) float64 {
 	return Rank_zero
 }
 
-func IsOnePair(kinds []KindOccurence) float64 {
+func isOnePair(kinds []KindOccurence) float64 {
 	var countPairs int
 	for _, kind := range kinds {
 		if kind.count == 2 {
