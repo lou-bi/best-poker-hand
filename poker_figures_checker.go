@@ -1,7 +1,7 @@
 package poker
 
 func IsStraightFlush(cards *[]Card) bool {
-	return IsStraight(cards) && IsFlush(cards)
+	return IsStraight(cards) && IsFlush(*cards)
 }
 
 func IsFourOfAKind(kinds KindsOccurence) bool {
@@ -13,13 +13,13 @@ func IsFourOfAKind(kinds KindsOccurence) bool {
 	return false
 }
 
-func IsFullHouse(cards *[]Card) (bool, float64) {
+func IsFullHouse(cards []Card) (bool, float64) {
 	a, b, i := 1, 1, 1
 	var d float64
 	var highest, lowest int
 
-	for ; i < len(*cards); i++ {
-		if (*cards)[i].value == (*cards)[0].value {
+	for ; i < len(cards); i++ {
+		if cards[i].value == cards[0].value {
 			a++
 		} else {
 			i++
@@ -29,12 +29,12 @@ func IsFullHouse(cards *[]Card) (bool, float64) {
 
 	if a == 3 {
 		highest = a
-		d = float64((*cards)[0].value) / 10.0
+		d = float64(cards[0].value) / 10.0
 		lowest = a
 	}
 
-	for ; i < len(*cards); i++ {
-		if (*cards)[i].value == (*cards)[4].value {
+	for ; i < len(cards); i++ {
+		if cards[i].value == cards[4].value {
 			b++
 		}
 	}
@@ -42,7 +42,7 @@ func IsFullHouse(cards *[]Card) (bool, float64) {
 	if b == 3 {
 		highest = b
 		lowest = a
-		d = float64((*cards)[4].value) / 10.0
+		d = float64(cards[4].value) / 10.0
 	}
 
 	if highest == 3 && lowest == 2 {
@@ -52,9 +52,9 @@ func IsFullHouse(cards *[]Card) (bool, float64) {
 	return false, d
 }
 
-func IsFlush(cards *[]Card) bool {
-	for i := 1; i < len((*cards))-1; i++ {
-		if (*cards)[i].suit != (*cards)[0].suit {
+func IsFlush(cards []Card) bool {
+	for i := 1; i < len((cards))-1; i++ {
+		if cards[i].suit != cards[0].suit {
 			return false
 		}
 	}
@@ -65,8 +65,8 @@ func IsStraight(cards *[]Card) bool {
 	hasAce := (*cards)[0].value == 14
 	straight := false
 
-	for i := 0; i < len(*cards)-1; i++ {
-		if (*cards)[i+1].value == (*cards)[i].value-1 {
+	for i := 0; i < len(*cards) - 1; i++ {
+		if (*cards)[i+1].value == (*cards)[i].value - 1 {
 			straight = true
 		} else {
 			straight = false
@@ -77,8 +77,8 @@ func IsStraight(cards *[]Card) bool {
 	if hasAce && !straight {
 		(*cards)[0].value = 1
 		straight = false
-		for i := 0; i < len((*cards))-1; i++ {
-			if (*cards)[i+1].value == (*cards)[i].value-1 {
+		for i := 0; i < len((*cards)) - 1; i++ {
+			if (*cards)[i+1].value == (*cards)[i].value - 1 {
 				straight = true
 			}
 		}

@@ -131,10 +131,10 @@ func getRank(cards *[]Card) float64 {
 	if IsFourOfAKind(kindsOccurence) {
 		return 7
 	}
-	if res, d := IsFullHouse(cards); res {
+	if res, d := IsFullHouse(*cards); res {
 		return 6 + d
 	}
-	if IsFlush(cards) {
+	if IsFlush(*cards) {
 		return 5
 	}
 	if IsStraight(cards) {
