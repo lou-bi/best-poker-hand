@@ -9,8 +9,9 @@ type Hand struct {
 }
 
 type Card struct {
-	value int //
+	value float64
 	suit  string
 }
 
-type KindsOccurence = map[int]int
+// {value: count}
+type KindsOccurence = map[float64]int

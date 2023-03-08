@@ -8,16 +8,19 @@ import (
 	"strings"
 )
 
-const CardSuits = "[♡♤♢♧]"
-const CardValues = `(?:[2-9]|10|[JQKA])`
 
-func getCardIntValue(target string) int {
+
+func getCardIntValue(target string) float64 {
 	orderedValues := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
 	for i, e := range orderedValues {
 		if target == e {
-			return i + 2
+			// + 2 to match the card real value
+			// (2 == 2; J == 11)
+			// (A == 14 OR A == 1 if used in a low straight)
+			return float64(i) + 2.0
 		}
 	}
+	// Will never reach because of previous verifications
 	return -1
 }
 
@@ -62,6 +65,9 @@ func BestHand(hands []string) ([]string, error) {
  * If this pass, no more error can rise in the program.
  */
 func checkHandsFormat(hands *[]string) error {
+	const CardSuits = "[♡♤♢♧]"
+	const CardValues = `(?:[2-9]|10|[JQKA])`
+	
 	rs := fmt.Sprintf(`^(?:%[1]v%[2]v ){4}%[1]v%[2]v$`, CardValues, CardSuits)
 
 	for _, hand := range *hands {
@@ -143,8 +149,8 @@ func getRank(cards *[]Card) float64 {
 	if IsThreeOfAKind(kindsOccurence) {
 		return 3
 	}
-	if IsTwoPair(kindsOccurence) {
-		return 2
+	if res, d := IsTwoPair(kindsOccurence); res {
+		return 2 + d
 	}
 	if IsOnePair(kindsOccurence) {
 		return 1

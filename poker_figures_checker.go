@@ -100,14 +100,20 @@ func IsThreeOfAKind(kinds KindsOccurence) bool {
 	return false
 }
 
-func IsTwoPair(kinds KindsOccurence) bool {
+func IsTwoPair(kinds KindsOccurence) (bool, float64) {
 	var countPairs int
-	for _, v := range kinds {
+	var twoPairValues []float64
+	for k, v := range kinds {
 		if v == 2 {
 			countPairs++
+			twoPairValues = append(twoPairValues, k)
 		}
 	}
-	return countPairs == 2
+
+	if len(twoPairValues) == 2 {
+
+	}
+	return false, 0
 }
 
 func IsOnePair(kinds KindsOccurence) bool {
