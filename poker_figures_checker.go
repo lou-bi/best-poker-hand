@@ -1,72 +1,49 @@
 package poker
 
-func IsStraightFlush(cards *[]Card) bool {
-	return IsStraight(cards) && IsFlush(*cards)
+func IsStraightFlush(cards []Card, kinds *[]KindOccurence) float64 {
+	// Check for IsStraight AFTER as it will mutate "kinds" in case of a "low ace straight"
+	if IsFlush(cards) > 0 && IsStraight(kinds) > 0 {
+		return Rank_sf
+	}
+	return Rank_zero
 }
 
-func IsFourOfAKind(kinds []KindOccurence) bool {
+func IsFourOfAKind(kinds []KindOccurence) float64 {
 	for _, kind := range kinds {
 		if kind.count == 4 {
-			return true
+			return Rank_foak
 		}
 	}
-	return false
+
+	return Rank_zero
 }
 
-func IsFullHouse(cards []Card) (bool, float64) {
-	a, b, i := 1, 1, 1
-	var d float64
-	var highest, lowest int
-
-	for ; i < len(cards); i++ {
-		if cards[i].value == cards[0].value {
-			a++
-		} else {
-			i++
-			break
-		}
+func IsFullHouse(kinds []KindOccurence) float64 {
+	if IsThreeOfAKind(kinds) != 0 && IsOnePair(kinds) != 0 {
+		return Rank_fh
 	}
-
-	if a == 3 {
-		highest = a
-		d = float64(cards[0].value) / 10.0
-		lowest = a
-	}
-
-	for ; i < len(cards); i++ {
-		if cards[i].value == cards[4].value {
-			b++
-		}
-	}
-
-	if b == 3 {
-		highest = b
-		lowest = a
-		d = float64(cards[4].value) / 10.0
-	}
-
-	if highest == 3 && lowest == 2 {
-		return true, d
-	}
-
-	return false, d
+	return Rank_zero
 }
 
-func IsFlush(cards []Card) bool {
+func IsFlush(cards []Card) float64 {
 	for i := 1; i < len((cards))-1; i++ {
 		if cards[i].suit != cards[0].suit {
-			return false
+			return Rank_zero
 		}
 	}
-	return true
+	return Rank_f
 }
 
-func IsStraight(cards *[]Card) bool {
-	hasAce := (*cards)[0].value == 14
+func IsStraight(kindsOccurence *[]KindOccurence) float64 {
+	if len(*kindsOccurence) != 5 {
+		return Rank_zero
+	}
+
+	hasAce := (*kindsOccurence)[0].value == 14
 	straight := false
 
-	for i := 0; i < len(*cards) - 1; i++ {
-		if (*cards)[i+1].value == (*cards)[i].value - 1 {
+	for i := 0; i < len(*kindsOccurence)-1; i++ {
+		if (*kindsOccurence)[i].value == (*kindsOccurence)[i+1].value+1 {
 			straight = true
 		} else {
 			straight = false
@@ -75,33 +52,47 @@ func IsStraight(cards *[]Card) bool {
 	}
 
 	if hasAce && !straight {
-		(*cards)[0].value = 1
 		straight = false
-		for i := 0; i < len((*cards)) - 1; i++ {
-			if (*cards)[i+1].value == (*cards)[i].value - 1 {
+
+		newKindsOccurence := (*kindsOccurence)[1:]
+		newKindsOccurence = append(newKindsOccurence, KindOccurence{1, 1})
+
+		for i := 0; i < len(newKindsOccurence)-1; i++ {
+
+			if (newKindsOccurence)[i].value == (newKindsOccurence)[i+1].value+1 {
 				straight = true
+			} else {
+				return Rank_zero
 			}
+
 		}
 
-		if !straight {
-			(*cards)[0].value = 14
+		if straight {
+			// We have a low ace straight, we need to save the new value of the ace
+			// in order to get decimal rank right
+			*kindsOccurence = newKindsOccurence
+			return Rank_s
 		}
 	}
 
-	return straight
+	if straight {
+		return Rank_s
+	}
+	return Rank_zero
 }
 
-func IsThreeOfAKind(kinds []KindOccurence) bool {
+func IsThreeOfAKind(kinds []KindOccurence) float64 {
 	for _, kind := range kinds {
 		if kind.count == 3 {
-			return true
+			return Rank_toak
 		}
 	}
-	return false
+	return Rank_zero
 }
 
-func IsTwoPair(kinds []KindOccurence) (bool, float64) {
+func IsTwoPair(kinds []KindOccurence) float64 {
 	var nbPair int
+
 	for _, kind := range kinds {
 		if kind.count == 2 {
 			nbPair++
@@ -109,17 +100,20 @@ func IsTwoPair(kinds []KindOccurence) (bool, float64) {
 	}
 
 	if nbPair == 2 {
-		// var values []float64
+		return Rank_tp
 	}
-	return false, 0
+	return Rank_zero
 }
 
-func IsOnePair(kinds []KindOccurence) bool {
+func IsOnePair(kinds []KindOccurence) float64 {
 	var countPairs int
 	for _, kind := range kinds {
 		if kind.count == 2 {
 			countPairs++
 		}
 	}
-	return countPairs == 1
+	if countPairs == 1 {
+		return Rank_op
+	}
+	return Rank_zero
 }
