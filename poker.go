@@ -67,7 +67,7 @@ func BestHand(hands []string) ([]string, error) {
 func checkHandsFormat(hands *[]string) error {
 	const CardSuits = "[♡♤♢♧]"
 	const CardValues = `(?:[2-9]|10|[JQKA])`
-	
+
 	rs := fmt.Sprintf(`^(?:%[1]v%[2]v ){4}%[1]v%[2]v$`, CardValues, CardSuits)
 
 	for _, hand := range *hands {
@@ -121,16 +121,23 @@ func parseHands(hands []string) []Hand {
 }
 
 func getRank(cards *[]Card) float64 {
-	kindsOccurence := make(KindsOccurence)
+	// Todo: extract this
+	var kindsMap = make(map[float64]int)
+	var kindsOccurence []KindOccurence
 
 	for _, c := range *cards {
-		if _, ok := kindsOccurence[c.value]; ok {
-			kindsOccurence[c.value]++
+		if _, ok := kindsMap[c.value]; ok {
+			kindsMap[c.value]++
 		} else {
-			kindsOccurence[c.value] = 1
+			kindsMap[c.value] = 1
 		}
 	}
 
+	for value, count := range kindsMap {
+		kindsOccurence = append(kindsOccurence, KindOccurence{value, count})
+	}
+	/////////
+	
 	if IsStraightFlush(cards) {
 		return 8
 	}

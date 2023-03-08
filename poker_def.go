@@ -13,5 +13,7 @@ type Card struct {
 	suit  string
 }
 
-// {value: count}
-type KindsOccurence = map[float64]int
+type KindOccurence struct {
+	value float64
+	count int
+}

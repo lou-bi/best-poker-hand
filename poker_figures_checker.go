@@ -4,9 +4,9 @@ func IsStraightFlush(cards *[]Card) bool {
 	return IsStraight(cards) && IsFlush(*cards)
 }
 
-func IsFourOfAKind(kinds KindsOccurence) bool {
-	for _, v := range kinds {
-		if v == 4 {
+func IsFourOfAKind(kinds []KindOccurence) bool {
+	for _, kind := range kinds {
+		if kind.count == 4 {
 			return true
 		}
 	}
@@ -91,35 +91,33 @@ func IsStraight(cards *[]Card) bool {
 	return straight
 }
 
-func IsThreeOfAKind(kinds KindsOccurence) bool {
-	for _, v := range kinds {
-		if v == 3 {
+func IsThreeOfAKind(kinds []KindOccurence) bool {
+	for _, kind := range kinds {
+		if kind.count == 3 {
 			return true
 		}
 	}
 	return false
 }
 
-func IsTwoPair(kinds KindsOccurence) (bool, float64) {
-	var countPairs int
-	var twoPairValues []float64
-	for k, v := range kinds {
-		if v == 2 {
-			countPairs++
-			twoPairValues = append(twoPairValues, k)
+func IsTwoPair(kinds []KindOccurence) (bool, float64) {
+	var nbPair int
+	for _, kind := range kinds {
+		if kind.count == 2 {
+			nbPair++
 		}
 	}
 
-	if len(twoPairValues) == 2 {
-
+	if nbPair == 2 {
+		// var values []float64
 	}
 	return false, 0
 }
 
-func IsOnePair(kinds KindsOccurence) bool {
+func IsOnePair(kinds []KindOccurence) bool {
 	var countPairs int
-	for _, v := range kinds {
-		if v == 2 {
+	for _, kind := range kinds {
+		if kind.count == 2 {
 			countPairs++
 		}
 	}
